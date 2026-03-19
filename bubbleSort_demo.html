@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冒泡排序动画演示</title>
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 标题样式 */
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        /* 算法原理说明区域 */
+        .algorithm-info {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .algorithm-info h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .algorithm-info p {
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 10px;
+        }
+
+        .algorithm-info ul {
+            margin-left: 20px;
+            color: #555;
+            line-height: 1.8;
+        }
+
+        .algorithm-info li {
+            margin-bottom: 8px;
+        }
+
+        /* 可视化区域 */
+        .visualization-area {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            min-height: 400px;
+            position: relative;
+        }
+
+        /* 柱状图容器 */
+        .bars-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            height: 300px;
+            gap: 8px;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* 单个柱子 */
+        .bar {
+            width: 50px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 10px;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.5s ease;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 柱子不同状态的颜色 */
+        .bar.comparing {
+            background: linear-gradient(180deg, #f093fb 0%, #f5576c 100%);
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .bar.swapping {
+            background: linear-gradient(180deg, #fa709a 0%, #fee140 100%);
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(250, 112, 154, 0.5);
+        }
+
+        .bar.sorted {
+            background: linear-gradient(180deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        /* 索引标签 */
+        .bar-index {
+            position: absolute;
+            bottom: -25px;
+            color: #666;
+            font-size: 12px;
+            font-weight: normal;
+        }
+
+        /* 控制面板 */
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-panel h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 12px 25px;
+            font-size: 1em;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+
+        /* 滑块样式 */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider-container label {
+            color: #666;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 200px;
+            height: 8px;
+            border-radius: 4px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 输入框样式 */
+        input[type="text"] {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1em;
+            width: 300px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* 状态信息区域 */
+        .status-area {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-area h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .status-text {
+            color: #555;
+            line-height: 1.8;
+            font-size: 1.1em;
+            min-height: 60px;
+        }
+
+        .status-text .highlight {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        /* 步骤计数器 */
+        .step-counter {
+            display: flex;
+            gap: 30px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #eee;
+        }
+
+        .counter-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .counter-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .counter-value {
+            color: #667eea;
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        /* 图例说明 */
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+        }
+
+        .legend-color.default {
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .legend-color.comparing {
+            background: linear-gradient(180deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .legend-color.swapping {
+            background: linear-gradient(180deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .legend-color.sorted {
+            background: linear-gradient(180deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .legend-text {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        /* 代码展示区域 */
+        .code-section {
+            background: #2d2d2d;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            overflow-x: auto;
+        }
+
+        .code-section h3 {
+            color: #fff;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        pre {
+            color: #f8f8f2;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        code {
+            display: block;
+        }
+
+        .code-comment {
+            color: #75715e;
+        }
+
+        .code-keyword {
+            color: #66d9ef;
+        }
+
+        .code-function {
+            color: #a6e22e;
+        }
+
+        .code-number {
+            color: #ae81ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🫧 冒泡排序动画演示</h1>
+        <p class="subtitle">通过可视化动画理解冒泡排序算法的工作原理</p>
+
+        <!-- 算法原理说明 -->
+        <div class="algorithm-info">
+            <h2>📚 冒泡排序算法原理</h2>
+            <p>冒泡排序（Bubble Sort）是一种简单的排序算法，它重复地遍历要排序的数列，一次比较两个元素，如果它们的顺序错误就把它们交换过来。</p>
+            <ul>
+                <li><strong>基本思想：</strong>通过相邻元素的比较和交换，使较大的元素逐渐"浮"到数列的末端（或较小的元素"沉"到前端）</li>
+                <li><strong>时间复杂度：</strong>最坏情况下为 O(n²)，最好情况下为 O(n)</li>
+                <li><strong>空间复杂度：</strong>O(1)，是原地排序算法</li>
+                <li><strong>稳定性：</strong>是稳定的排序算法</li>
+            </ul>
+        </div>
+
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <h3>🎮 控制面板</h3>
+            <div class="controls-row">
+                <button class="btn btn-primary" id="startBtn">开始排序</button>
+                <button class="btn btn-secondary" id="resetBtn">重置数据</button>
+                <button class="btn btn-success" id="randomBtn">随机生成</button>
+            </div>
+            <div class="controls-row">
+                <div class="slider-container">
+                    <label for="speedSlider">动画速度：</label>
+                    <input type="range" id="speedSlider" min="100" max="2000" value="800">
+                    <span id="speedValue">800ms</span>
+                </div>
+            </div>
+            <div class="controls-row">
+                <input type="text" id="customInput" placeholder="输入数字，用逗号分隔（如：5,3,8,1,9）">
+                <button class="btn btn-primary" id="customBtn">使用自定义数据</button>
+            </div>
+        </div>
+
+        <!-- 可视化区域 -->
+        <div class="visualization-area">
+            <div class="bars-container" id="barsContainer">
+                <!-- 柱子将通过JavaScript动态生成 -->
+            </div>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color default"></div>
+                    <span class="legend-text">未排序</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color comparing"></div>
+                    <span class="legend-text">正在比较</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color swapping"></div>
+                    <span class="legend-text">正在交换</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color sorted"></div>
+                    <span class="legend-text">已排序</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 状态信息 -->
+        <div class="status-area">
+            <h3>📊 排序状态</h3>
+            <div class="status-text" id="statusText">
+                点击"开始排序"按钮开始演示冒泡排序算法
+            </div>
+            <div class="step-counter">
+                <div class="counter-item">
+                    <span class="counter-label">比较次数</span>
+                    <span class="counter-value" id="compareCount">0</span>
+                </div>
+                <div class="counter-item">
+                    <span class="counter-label">交换次数</span>
+                    <span class="counter-value" id="swapCount">0</span>
+                </div>
+                <div class="counter-item">
+                    <span class="counter-label">遍历轮数</span>
+                    <span class="counter-value" id="roundCount">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 代码展示 -->
+        <div class="code-section">
+            <h3>💻 JavaScript 实现代码</h3>
+            <pre><code><span class="code-comment">// 冒泡排序算法实现</span>
+<span class="code-keyword">function</span> <span class="code-function">bubbleSort</span>(arr) {
+    <span class="code-keyword">const</span> n = arr.length;
+    
+    <span class="code-comment">// 外层循环：控制遍历轮数</span>
+    <span class="code-keyword">for</span> (<span class="code-keyword">let</span> i = <span class="code-number">0</span>; i < n - <span class="code-number">1</span>; i++) {
+        
+        <span class="code-comment">// 内层循环：进行相邻元素比较</span>
+        <span class="code-keyword">for</span> (<span class="code-keyword">let</span> j = <span class="code-number">0</span>; j < n - i - <span class="code-number">1</span>; j++) {
+            
+            <span class="code-comment">// 如果前一个元素大于后一个元素，交换它们</span>
+            <span class="code-keyword">if</span> (arr[j] > arr[j + <span class="code-number">1</span>]) {
+                <span class="code-comment">// 交换元素</span>
+                <span class="code-keyword">let</span> temp = arr[j];
+                arr[j] = arr[j + <span class="code-number">1</span>];
+                arr[j + <span class="code-number">1</span>] = temp;
+            }
+        }
+    }
+    
+    <span class="code-keyword">return</span> arr;
+}</code></pre>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const barsContainer = document.getElementById('barsContainer');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const randomBtn = document.getElementById('randomBtn');
+        const customBtn = document.getElementById('customBtn');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
+        const customInput = document.getElementById('customInput');
+        const statusText = document.getElementById('statusText');
+        const compareCountEl = document.getElementById('compareCount');
+        const swapCountEl = document.getElementById('swapCount');
+        const roundCountEl = document.getElementById('roundCount');
+
+        // 游戏状态变量
+        let data = [64, 34, 25, 12, 22, 11, 90, 5]; // 默认数据
+        let originalData = [...data]; // 保存原始数据
+        let isSorting = false; // 是否正在排序
+        let animationSpeed = 800; // 动画速度（毫秒）
+        let compareCount = 0; // 比较次数
+        let swapCount = 0; // 交换次数
+        let roundCount = 0; // 遍历轮数
+
+        /**
+         * 初始化显示
+         */
+        function init() {
+            renderBars();
+            resetCounters();
+        }
+
+        /**
+         * 渲染柱状图
+         */
+        function renderBars() {
+            barsContainer.innerHTML = '';
+            const maxValue = Math.max(...data);
+            
+            data.forEach((value, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = `${(value / maxValue) * 250}px`;
+                bar.textContent = value;
+                bar.dataset.index = index;
+                
+                // 添加索引标签
+                const indexLabel = document.createElement('span');
+                indexLabel.className = 'bar-index';
+                indexLabel.textContent = index;
+                bar.appendChild(indexLabel);
+                
+                barsContainer.appendChild(bar);
+            });
+        }
+
+        /**
+         * 重置计数器
+         */
+        function resetCounters() {
+            compareCount = 0;
+            swapCount = 0;
+            roundCount = 0;
+            updateCounters();
+        }
+
+        /**
+         * 更新计数器显示
+         */
+        function updateCounters() {
+            compareCountEl.textContent = compareCount;
+            swapCountEl.textContent = swapCount;
+            roundCountEl.textContent = roundCount;
+        }
+
+        /**
+         * 更新状态文本
+         */
+        function updateStatus(text) {
+            statusText.innerHTML = text;
+        }
+
+        /**
+         * 延迟函数
+         */
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        /**
+         * 获取柱子元素
+         */
+        function getBar(index) {
+            return barsContainer.children[index];
+        }
+
+        /**
+         * 设置柱子状态
+         */
+        function setBarState(index, state) {
+            const bar = getBar(index);
+            if (bar) {
+                bar.className = 'bar ' + state;
+            }
+        }
+
+        /**
+         * 重置所有柱子状态
+         */
+        function resetAllBarsState() {
+            const bars = barsContainer.querySelectorAll('.bar');
+            bars.forEach(bar => {
+                bar.className = 'bar';
+            });
+        }
+
+        /**
+         * 交换两个柱子的视觉位置
+         */
+        async function swapBarsVisual(index1, index2) {
+            const bar1 = getBar(index1);
+            const bar2 = getBar(index2);
+            
+            // 获取当前位置
+            const rect1 = bar1.getBoundingClientRect();
+            const rect2 = bar2.getBoundingClientRect();
+            
+            // 计算交换距离
+            const distance = rect2.left - rect1.left;
+            
+            // 应用交换动画
+            bar1.style.transform = `translateX(${distance}px)`;
+            bar2.style.transform = `translateX(${-distance}px)`;
+            
+            await sleep(animationSpeed * 0.4);
+            
+            // 交换DOM位置
+            const parent = bar1.parentNode;
+            const next1 = bar1.nextSibling;
+            const next2 = bar2.nextSibling;
+            
+            parent.insertBefore(bar1, next2);
+            parent.insertBefore(bar2, next1);
+            
+            // 重置transform
+            bar1.style.transform = '';
+            bar2.style.transform = '';
+            
+            // 更新索引标签
+            const label1 = bar1.querySelector('.bar-index');
+            const label2 = bar2.querySelector('.bar-index');
+            label1.textContent = index2;
+            label2.textContent = index1;
+            
+            await sleep(animationSpeed * 0.1);
+        }
+
+        /**
+         * 冒泡排序动画
+         */
+        async function bubbleSortAnimation() {
+            if (isSorting) return;
+            isSorting = true;
+            startBtn.disabled = true;
+            customBtn.disabled = true;
+            
+            const n = data.length;
+            
+            for (let i = 0; i < n - 1; i++) {
+                roundCount++;
+                updateCounters();
+                updateStatus(`第 <span class="highlight">${roundCount}</span> 轮遍历：从数组开头开始比较相邻元素`);
+                
+                for (let j = 0; j < n - i - 1; j++) {
+                    // 高亮正在比较的两个元素
+                    resetAllBarsState();
+                    setBarState(j, 'comparing');
+                    setBarState(j + 1, 'comparing');
+                    
+                    compareCount++;
+                    updateCounters();
+                    updateStatus(`比较元素 data[${j}]=<span class="highlight">${data[j]}</span> 和 data[${j + 1}]=<span class="highlight">${data[j + 1]}</span>`);
+                    
+                    await sleep(animationSpeed);
+                    
+                    // 如果需要交换
+                    if (data[j] > data[j + 1]) {
+                        updateStatus(`<span class="highlight">${data[j]} > ${data[j + 1]}</span>，需要交换位置`);
+                        
+                        setBarState(j, 'swapping');
+                        setBarState(j + 1, 'swapping');
+                        
+                        await sleep(animationSpeed * 0.3);
+                        
+                        // 交换数据
+                        const temp = data[j];
+                        data[j] = data[j + 1];
+                        data[j + 1] = temp;
+                        
+                        // 交换视觉效果
+                        await swapBarsVisual(j, j + 1);
+                        
+                        swapCount++;
+                        updateCounters();
+                    } else {
+                        updateStatus(`<span class="highlight">${data[j]} ≤ ${data[j + 1]}</span>，不需要交换`);
+                        await sleep(animationSpeed * 0.5);
+                    }
+                }
+                
+                // 标记已排序的元素
+                setBarState(n - i - 1, 'sorted');
+                updateStatus(`第 ${roundCount} 轮完成，位置 ${n - i - 1} 的元素已就位`);
+                await sleep(animationSpeed * 0.5);
+            }
+            
+            // 标记最后一个元素为已排序
+            setBarState(0, 'sorted');
+            resetAllBarsState();
+            
+            // 所有元素标记为已排序
+            const bars = barsContainer.querySelectorAll('.bar');
+            bars.forEach(bar => bar.classList.add('sorted'));
+            
+            updateStatus(`🎉 排序完成！共进行了 <span class="highlight">${compareCount}</span> 次比较，<span class="highlight">${swapCount}</span> 次交换`);
+            
+            isSorting = false;
+            startBtn.disabled = false;
+            customBtn.disabled = false;
+        }
+
+        /**
+         * 生成随机数据
+         */
+        function generateRandomData() {
+            const count = Math.floor(Math.random() * 5) + 6; // 6-10个元素
+            data = [];
+            for (let i = 0; i < count; i++) {
+                data.push(Math.floor(Math.random() * 90) + 10); // 10-99之间的随机数
+            }
+            originalData = [...data];
+            init();
+            updateStatus('已生成随机数据，点击"开始排序"开始演示');
+        }
+
+        /**
+         * 重置数据
+         */
+        function resetData() {
+            data = [...originalData];
+            init();
+            updateStatus('数据已重置，点击"开始排序"开始演示');
+        }
+
+        /**
+         * 使用自定义数据
+         */
+        function useCustomData() {
+            const input = customInput.value.trim();
+            if (!input) {
+                alert('请输入数据');
+                return;
+            }
+            
+            const values = input.split(',').map(v => parseInt(v.trim())).filter(v => !isNaN(v));
+            
+            if (values.length < 2) {
+                alert('请至少输入2个有效数字');
+                return;
+            }
+            
+            if (values.length > 15) {
+                alert('最多支持15个数字');
+                return;
+            }
+            
+            data = values;
+            originalData = [...data];
+            init();
+            updateStatus('已使用自定义数据，点击"开始排序"开始演示');
+        }
+
+        // 事件监听器
+        startBtn.addEventListener('click', bubbleSortAnimation);
+        resetBtn.addEventListener('click', resetData);
+        randomBtn.addEventListener('click', generateRandomData);
+        customBtn.addEventListener('click', useCustomData);
+        
+        speedSlider.addEventListener('input', (e) => {
+            animationSpeed = parseInt(e.target.value);
+            speedValue.textContent = animationSpeed + 'ms';
+        });
+
+        // 初始化
+        init();
+    </script>
+</body>
+</html>
