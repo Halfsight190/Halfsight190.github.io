@@ -1,0 +1,44 @@
+name: 自动部署到 GitHub Pages
+
+# 触发条件：代码推送到 main 分支时，自动运行
+on:
+  push:
+    branches: [ main ]  # 如果你的默认分支是 master，就把 main 改成 master
+
+# 给机器人授权部署网站的权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 只允许同时跑一个部署任务，避免冲突
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+# 自动化任务流程（机器人按顺序干活）
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest  # 用免费的 Ubuntu 服务器跑任务
+    steps:
+      # 1. 把你的代码下载到服务器
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      # 2. 配置 GitHub Pages 环境
+      - name: 初始化 Pages
+        uses: actions/configure-pages@v5
+
+      # 3. 打包你的网页文件（从根目录找 index.html）
+      - name: 上传网页文件
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./  # ./ 代表根目录，如果你的 html 在 src 文件夹里，就改成 ./src/
+
+      # 4. 部署到 GitHub Pages
+      - name: 部署网站
+        id: deployment
+        uses: actions/deploy-pages@v4
